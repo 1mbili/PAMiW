@@ -7,3 +7,4 @@ uuid
 redis
 gunicorn
 bleach
+requests

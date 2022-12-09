@@ -8,10 +8,11 @@ import string
 
 from os import getenv
 from flask_sse import sse
-from jwt import decode 
+from jwt import decode
 from redis import Redis
+from requests import Request, post
 from time import sleep
-from flask import Flask, request, redirect, make_response
+from flask import Flask, request, redirect, make_response, url_for
 from flask import render_template
 from dotenv import load_dotenv
 from .create_jwt import create_username_jwt
@@ -24,7 +25,7 @@ SECRET_CREDENTIALS = getenv("SECRET_CREDENTIALS")
 PEPPER = getenv("PEPPER")
 CLIENT_ID = getenv("CLIENT_ID")
 CLIENT_SECRET = getenv("CLIENT_SECRET")
-REDIRECT_URI= "http://127.0.0.1:5050/callback"
+REDIRECT_URI = "http://127.0.0.1:5050/callback"
 REDIS_URL = "redis://redis:6379/0"
 app = Flask(__name__)
 app.config["REDIS_URL"] = REDIS_URL
@@ -40,13 +41,17 @@ def index():
     jwt = request.cookies.get("jwt")
     jwt_data = valid_token(jwt)
     if jwt_data:
-        return render_template("homepage.html", username=jwt_data["username"])
+        return redirect(url_for('user', username=jwt_data["username"]), code=302)
     return redirect("/authenticate", code=302)
+
+
+@app.route("/user/<username>", methods=["GET"])
+def user(username):
+    return render_template("homepage.html", username=username)
 
 
 def valid_token(token):
     try:
-        print(token)
         decoded = decode(token, JWT_SECRET, algorithms=["HS256"])
         return decoded
     except Exception as err:
@@ -54,24 +59,23 @@ def valid_token(token):
         return False
 
 
-
-@app.route("/user_passwords", methods=["GET"]) #POST
+@app.route("/user_passwords", methods=["GET"])  # POST
 def user_passwords():
     jwt = request.cookies.get("jwt")
     username = valid_token(jwt)['username']
     klucz = "dane:hasla:"+username
     user_password = db.smembers(klucz)
-    sse.publish(get_items(user_passwords), type="msg")
+    sse.publish(get_items(user_password), type="msg")
     while True:
         sleep(3)
         user_passwords_new = db.smembers(klucz)
         if user_passwords_new != user_password:
             sse.publish(get_items(user_passwords_new), type="msg")
-            user_passwords = user_passwords_new
+            user_password = user_passwords_new
 
 
 def get_items(redis_set):
-  return [x.decode() for x in redis_set]
+    return [x.decode() for x in redis_set]
 
 
 @app.route("/sse")
@@ -83,10 +87,11 @@ def server_sent_events():
 def authenticate():
     if request.method == "GET":
         return render_template("login-form.html")
-    if "register" in request.form.keys():
-        return redirect("/register", code=302)
-    if "restore_acces" in request.form.keys():
-        return redirect("/restore_acces", code=302)
+    subpages = ["register", "restore_acces", "oauth"]
+    if "auth" not in request.form.keys():
+        for subpage in subpages:
+            if subpage in request.form.keys():
+                return redirect("/" + subpage, code=302)
     username = bleach.clean(request.form.get("username", ""))
     password = bleach.clean(request.form.get("password", ""))
     password_in_db = db.get("klient:" + username + ":haslo")
@@ -95,6 +100,15 @@ def authenticate():
         response.set_cookie("jwt", create_username_jwt(username, JWT_SECRET))
         return response
     return "Wrong username or password", 400
+
+
+@app.route("/logout", methods=["GET"])
+def logout():
+    response = redirect("/", code=302)
+    response.set_cookie("jwt", '', expires=0)
+    response.set_cookie("state", '', expires=0)
+    return response
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -151,7 +165,7 @@ def set_new_password():
     username = request.cookies.get("username")
     msg, creds_check = validate_creds(new_password, email)
     if creds_check is False:
-        return msg, 400 
+        return msg, 400
     if token != db.get("tempCode:" + email).decode():
         return "Wrong temporary code", 400
     db.set("klient:" + username + ":haslo", encrypt_password(new_password))
@@ -161,15 +175,63 @@ def set_new_password():
     return response
 
 
+@app.route("/callback")
+def callback():
+    args = request.args
+    cookies = request.cookies
+
+    if args.get("state") != cookies.get("state"):
+        return "State does not match. Possible authorization_code injection attempt", 400
+
+    params = {
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "code": args.get("code")
+    }
+
+    access_token = post("https://github.com/login/oauth/access_token",
+                        params=params)
+    params_username = {"Authorization": "Bearer " +
+                       access_token.text.split("&")[0].split("=")[1]}
+    username = post("https://api.github.com/user",
+                    headers=params_username)
+    github_response = username.json()
+    if 'login' in github_response.keys():
+        response = redirect("/", code=302)
+        response.set_cookie("jwt", create_username_jwt(
+            github_response['login'], JWT_SECRET))
+        return response
+    return "SMT went wrong", 400
+
+
 @app.route("/oauth")
 def authorize_with_github():
-    random_State = generate_state()
+    random_state = generate_state()
     params = {
         "client_id": CLIENT_ID,
         "redirect_uri": REDIRECT_URI,
-        "scope": "user repo",
-        "state" : random_State
+        "scope": "user",
+        "state": random_state
     }
+    authorize = Request("GET", "https://github.com/login/oauth/authorize",
+                        params=params).prepare()
+
+    response = redirect(authorize.url)
+    response.set_cookie("state", random_state)
+    return response
+
+
+@app.route("/user/addPass", methods=["POST"])
+def add_password():
+    name = bleach.clean(request.form.get("name", ""))
+    new_password = bleach.clean(request.form.get("new_password", ""))
+    jwt = request.cookies.get("jwt")
+    jwt_data = valid_token(jwt)
+    if jwt_data:
+        db.sadd("dane:hasla:" +
+                jwt_data["username"], name + ":" + new_password)
+        return redirect(url_for('user', username=jwt_data["username"]), code=302)
+    return "Unauthorized", 401
 
 
 def validate_creds(password: str, email: str) -> bool:
@@ -177,9 +239,9 @@ def validate_creds(password: str, email: str) -> bool:
     if len(password) < 8:
         return "Too short pass", False
     if "@" not in email:
-        return "Invalid email",False
+        return "Invalid email", False
     if not all(" " not in x for x in (password, email)):
-        return "Fields cannot contain empty spaces",False
+        return "Fields cannot contain empty spaces", False
     return "", True
 
 

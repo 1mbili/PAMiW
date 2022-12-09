@@ -14,7 +14,7 @@ function myFunction() {
       } else {
         tr[i].style.display = "none";
       }
-    }       
+    }
   }
 }
 
@@ -35,14 +35,14 @@ function set_tabelka(text, data) {
 
   if (table) {
     table.remove();
-  }  
+  }
   table = document.createElement("table"),
-  main = document.getElementById("main")
+    main = document.getElementById("main")
   row = table.insertRow();
   table.setAttribute("id", "output");
   table.setAttribute("class", "styled-table");
   main.appendChild(table);
-  
+
   var perrow = 1;
   console.log(data)
   console.log(typeof data)
@@ -53,13 +53,26 @@ function set_tabelka(text, data) {
     cell = row.insertCell();
     cell.innerHTML = vals[0];
     cell = row.insertCell();
-    cell.innerHTML = vals[1];
+    id = "PasswordCell_" + i
+    cell.innerHTML = `<input type="password" value=${vals[1]} id=${id} readonly="readonly">`
+    cell3 = row.insertCell();
+    let checkbox = document.createElement("input")
+    checkbox.type = "checkbox"
+    checkbox.onclick = function () {
+      var x = document.getElementById("PasswordCell_" + i);
+      if (x.type === "password") {
+        x.type = "text";
+      } else {
+        x.type = "password";
+      }
+    }
+    cell3.appendChild(checkbox)
     var next = i + 1;
-    if (next%perrow==0 && next!=data.length) { row = table.insertRow(); }
+    if (next % perrow == 0 && next != data.length) { row = table.insertRow(); }
   });
 }
 
 function clear_output() {
-    set_output("")
+  set_output("")
 }
 
