@@ -5,12 +5,12 @@ import bleach
 import secrets
 import bcrypt
 import string
+
 from os import getenv
 from flask_sse import sse
-from jwt import decode, ExpiredSignatureError
+from jwt import decode 
 from redis import Redis
 from time import sleep
-from random import randint
 from flask import Flask, request, redirect, make_response
 from flask import render_template
 from dotenv import load_dotenv
@@ -60,12 +60,12 @@ def user_passwords():
     jwt = request.cookies.get("jwt")
     username = valid_token(jwt)['username']
     klucz = "dane:hasla:"+username
-    user_passwords = db.smembers(klucz)
+    user_password = db.smembers(klucz)
     sse.publish(get_items(user_passwords), type="msg")
     while True:
         sleep(3)
         user_passwords_new = db.smembers(klucz)
-        if user_passwords_new != user_passwords:
+        if user_passwords_new != user_password:
             sse.publish(get_items(user_passwords_new), type="msg")
             user_passwords = user_passwords_new
 
@@ -178,7 +178,7 @@ def validate_creds(password: str, email: str) -> bool:
         return "Too short pass", False
     if "@" not in email:
         return "Invalid email",False
-    if not all([" " not in x for x in (password, email)]):
+    if not all(" " not in x for x in (password, email)):
         return "Fields cannot contain empty spaces",False
     return "", True
 

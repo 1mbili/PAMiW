@@ -1,4 +1,5 @@
 import os
+import sys
 from redis import StrictRedis
 from bcrypt import hashpw, gensalt
 from dotenv import load_dotenv
@@ -15,7 +16,7 @@ try:
 except:
     print("ERROR communicating with Redis database.")
     print("Start Redis instance first. Exiting.")
-    exit(1)
+    sys.exit(1)
 
 def main(filename):
     with open(filename, encoding="utf-8") as f:
