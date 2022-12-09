@@ -1,0 +1,20 @@
+volumes:
+  data:
+
+services:
+  redis:
+    image: redis:latest
+    volumes:
+      - data:/data
+    ports:
+      - 6379:6379
+
+  flask-app:
+    image: flask:debug
+    build: .
+    ports: 
+      - 5050:5050
+    volumes:
+      - ./app:/var/www/app
+    depends_on:
+      - redis

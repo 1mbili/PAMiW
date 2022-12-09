@@ -1,0 +1,6 @@
+klient:michalek:haslo Mojehaselko
+klient:barabasz:haslo MojePudelko123
+klient:michalek:email m.bilinskimichal@gmail.com
+klient:bialyWilko:haslo Wilczur
+klient:Student:haslo Test123
+admin:admin:haslo admin123

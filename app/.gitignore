@@ -1,0 +1,6 @@
+#.env
+users/*
+*pycache*
+*.pycache
+*.pyc
+*__pycache__*

@@ -1,0 +1,9 @@
+flask
+flask_sse
+pyjwt
+python-dotenv
+bcrypt
+uuid
+redis
+gunicorn
+bleach

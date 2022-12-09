@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Test powiadomień ze strony serwera</title>
+    <script src="/static/main.js"></script>
+    <script>
+      window.addEventListener("load", function() {
+      start = document.getElementById("start")
+          event.preventDefault()
+          fetch('/user_passwords', {method:"get"})
+          .then((response) => response.text())
+          .then((text) => console.info(text))
+        });
+      
+      es = new EventSource("/stream")
+      es.addEventListener("msg", function(event) {
+          set_tabelka("Twoje hasla", event.data)
+      }, false);
+      es.addEventListener("error", function(event) {
+          set_output("Nie udało się pobrać, sadge");
+      }, false);
+    </script>
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Rubik:400,700'><link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}" }} >
+    <!-- <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Rubik:400,700'><link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" }}> -->
+  </head>
+  
+  <body>
+    <div class="main" id="main">
+    <p id="start">Witaj użytkowniku: {{ username }}.</p>
+    <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for names.." title="Type in a name">
+    <table id="output"></table>
+  </div>
+  </body>
+</html>
