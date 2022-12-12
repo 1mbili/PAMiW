@@ -31,21 +31,22 @@ function set_output(text) {
 }
 
 function set_tabelka(text, data) {
+  if (data.slice(1,3) == '""') {
+    return;
+  }
   table = document.getElementById("output")
 
   if (table) {
     table.remove();
   }
   table = document.createElement("table"),
-    main = document.getElementById("main")
+  main = document.getElementById("main")
   row = table.insertRow();
   table.setAttribute("id", "output");
   table.setAttribute("class", "styled-table");
   main.appendChild(table);
 
   var perrow = 1;
-  console.log(data)
-  console.log(typeof data)
   d_new = data.replace(/"/g, '').slice(1, -2).split(",")
   console.log(d_new)
   d_new.forEach((value, i) => {

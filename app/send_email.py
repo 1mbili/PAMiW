@@ -8,9 +8,9 @@ from email.message import EmailMessage
 from os import getenv
 from dotenv import load_dotenv
 load_dotenv(verbose=True)
-receiver = ['m.bilinskimichal@gmail.com']
 
-def send_temp_code(recivers :list, code :str):
+
+def send_temp_code(recivers: list, code: str):
     """Function for sending emails"""
     message = f"""
     Witaj,

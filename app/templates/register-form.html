@@ -1,32 +1,47 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Register Form</title>
-  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Rubik:400,700'><link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" }}
-  >
+  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Rubik:400,700'>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" }}>
 
 </head>
+
 <body>
-<!-- partial:index.partial.html -->
-<div class="login-form">
-  <form action="/register" method="post">
-    <h1>Register</h1>
-    <div class="content">
-      <div class="input-field">
-        <input name="username" type="username" placeholder="username" autocomplete="yes">
-        </div> 
-      <div class="input-field">
-        <input name="email" type="email" placeholder="Email" autocomplete="nope">
+  <!-- partial:index.partial.html -->
+  <div class="login-form">
+    <div class="container">
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      {% for message in messages %}
+      <div class="success-msg">
+        <i class="fa fa-check"></i>
+        {{ message }}
       </div>
-      <div class="input-field">
-        <input name="password" type="password" placeholder="Password" autocomplete="new-password">
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+    </div>
+    <form action="/register" method="post">
+      <h1>Register</h1>
+      <div class="content">
+        <div class="input-field">
+          <input name="username" type="username" placeholder="username" autocomplete="yes">
+        </div>
+        <div class="input-field">
+          <input name="email" type="email" placeholder="Email" autocomplete="nope">
+        </div>
+        <div class="input-field">
+          <input name="password" type="password" placeholder="Password" autocomplete="new-password">
+        </div>
       </div>
-    </div>
-    <div class="action">
-      <button type="submit">Register</button>
-    </div>
-  </form>
-</div>
+      <div class="action">
+        <button type="submit">Register</button>
+      </div>
+    </form>
+  </div>
 </body>
+
 </html>

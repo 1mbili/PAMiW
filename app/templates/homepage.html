@@ -23,39 +23,45 @@
   </script>
   <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Rubik:400,700'>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}" }}>
-  <!-- <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Rubik:400,700'><link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" }}> -->
 </head>
 
 <body>
-    <ul>
-      <li><a href="#home">Home</a></li>
-      <li><a href="#addPass">Dodaj haslo</a></li>
-      <li><a href="#contact">Importuj hasla</a></li>
-      <li><a href="#contact">Eksportuj hasla</a></li>
-      <li style="float:right"><a class="active" href="/logout">Wyloguj</a></li>
-    </ul>
+  <ul>
+    <li><a href="#home">Home</a></li>
+    <li><a href="#addPass">Dodaj haslo</a></li>
+    <li>
+      <label>
+        <form action="/user/upload" method="post" enctype="multipart/form-data">
+          <input id="uploadFile" name="name" type="file" style="display: none;" onchange="this.form.submit()">
+          <a>Importuj hasła</a>
+        </form>
+      </label>
+    </li>
+    <li><a href="#contact">Eksportuj hasla</a></li>
+    <li style="float:right"><a class="active" href="/logout">Wyloguj</a></li>
+  </ul>
   <div class="main" id="main">
     <p id="start">Witaj użytkowniku: {{ username }}.</p>
     <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for names.." title="Type in a name">
     <table id="output"></table>
   </div>
 
-	<div class="overlay" id="addPass">
-		<div class="wrapper">
-			<h2>Dodaj hasło</h2><a class="close" href="#">&times;</a>
-			<div class="content">
-				<div class="container">
-					<form action="/user/addPass" method="post">
-						<label>Nazwa witryny</label>
-						<input name="name" placeholder="" type="text">
-						<label>Hasło</label>
-						<input name="new_password" placeholder="Hasło" type="password">
-						<input type="submit" value="Submit">
-					</form>
-				</div>
-			</div>
-		</div>
-	</div>
+  <div class="overlay" id="addPass">
+    <div class="wrapper">
+      <h2>Dodaj hasło</h2><a class="close" href="#">&times;</a>
+      <div class="content">
+        <div class="container">
+          <form action="/user/addPass" method="post">
+            <label>Nazwa witryny</label>
+            <input name="name" placeholder="" type="text">
+            <label>Hasło</label>
+            <input name="new_password" placeholder="Hasło" type="password">
+            <input type="submit" value="Submit">
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

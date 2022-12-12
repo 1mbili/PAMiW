@@ -4,19 +4,18 @@ Main app file
 import bleach
 import secrets
 import bcrypt
-import string
 
 from os import getenv
 from flask_sse import sse
-from jwt import decode
 from redis import Redis
 from requests import Request, post
 from time import sleep
-from flask import Flask, request, redirect, make_response, url_for
+from flask import Flask, flash, request, redirect, make_response, url_for
 from flask import render_template
 from dotenv import load_dotenv
 from .create_jwt import create_username_jwt
 from .send_email import send_temp_code
+from .utils import validate_creds, encrypt_password, generate_state, allowed_file, update_passwords, get_items, validate_token
 load_dotenv(verbose=True)
 
 
@@ -27,8 +26,10 @@ CLIENT_ID = getenv("CLIENT_ID")
 CLIENT_SECRET = getenv("CLIENT_SECRET")
 REDIRECT_URI = "http://127.0.0.1:5050/callback"
 REDIS_URL = "redis://redis:6379/0"
+
 app = Flask(__name__)
 app.config["REDIS_URL"] = REDIS_URL
+app.secret_key = getenv("FLASK_SECRET_KEY")
 db = Redis(host='redis', port=6379)
 
 app.register_blueprint(sse, url_prefix="/stream")
@@ -39,7 +40,7 @@ db.echo("ping")
 @app.route("/", methods=["GET"])
 def index():
     jwt = request.cookies.get("jwt")
-    jwt_data = valid_token(jwt)
+    jwt_data = validate_token(jwt)
     if jwt_data:
         return redirect(url_for('user', username=jwt_data["username"]), code=302)
     return redirect("/authenticate", code=302)
@@ -50,19 +51,10 @@ def user(username):
     return render_template("homepage.html", username=username)
 
 
-def valid_token(token):
-    try:
-        decoded = decode(token, JWT_SECRET, algorithms=["HS256"])
-        return decoded
-    except Exception as err:
-        print(err)
-        return False
-
-
 @app.route("/user_passwords", methods=["GET"])  # POST
 def user_passwords():
     jwt = request.cookies.get("jwt")
-    username = valid_token(jwt)['username']
+    username = validate_token(jwt)['username']
     klucz = "dane:hasla:"+username
     user_password = db.smembers(klucz)
     sse.publish(get_items(user_password), type="msg")
@@ -72,10 +64,6 @@ def user_passwords():
         if user_passwords_new != user_password:
             sse.publish(get_items(user_passwords_new), type="msg")
             user_password = user_passwords_new
-
-
-def get_items(redis_set):
-    return [x.decode() for x in redis_set]
 
 
 @app.route("/sse")
@@ -99,11 +87,13 @@ def authenticate():
         response = redirect("/", code=302)
         response.set_cookie("jwt", create_username_jwt(username, JWT_SECRET))
         return response
-    return "Wrong username or password", 400
+    flash('Niepoprawna nazwa użytkownika lub hasło')
+    return redirect("/authenticate", code=302)
 
 
 @app.route("/logout", methods=["GET"])
 def logout():
+    flash('Wylogowano pomyślnie')
     response = redirect("/", code=302)
     response.set_cookie("jwt", '', expires=0)
     response.set_cookie("state", '', expires=0)
@@ -160,14 +150,17 @@ def set_new_password():
     new_password = bleach.clean(request.form.get("new_password", ""))
     new_password_conf = bleach.clean(request.form.get("new_password_conf", ""))
     if new_password != new_password_conf:
-        return "Passwords do not match", 400
+        flash("Hasła nie są takie same")
+        return redirect(request.url)
     email = request.cookies.get("email")
     username = request.cookies.get("username")
     msg, creds_check = validate_creds(new_password, email)
     if creds_check is False:
-        return msg, 400
+        flash(msg)
+        return redirect(request.url)
     if token != db.get("tempCode:" + email).decode():
-        return "Wrong temporary code", 400
+        flash("Zły Token")
+        return redirect(request.url)
     db.set("klient:" + username + ":haslo", encrypt_password(new_password))
     response = redirect("/", code=302)
     response.set_cookie("email", "", expires=0)
@@ -225,31 +218,35 @@ def authorize_with_github():
 def add_password():
     name = bleach.clean(request.form.get("name", ""))
     new_password = bleach.clean(request.form.get("new_password", ""))
+    if name == "" or new_password == "":
+        return redirect(request.url)
     jwt = request.cookies.get("jwt")
-    jwt_data = valid_token(jwt)
+    jwt_data = validate_token(jwt)
     if jwt_data:
+        print(name + ":" + new_password)
         db.sadd("dane:hasla:" +
                 jwt_data["username"], name + ":" + new_password)
         return redirect(url_for('user', username=jwt_data["username"]), code=302)
     return "Unauthorized", 401
 
 
-def validate_creds(password: str, email: str) -> bool:
-    """Check if user credentials are valid"""
-    if len(password) < 8:
-        return "Too short pass", False
-    if "@" not in email:
-        return "Invalid email", False
-    if not all(" " not in x for x in (password, email)):
-        return "Fields cannot contain empty spaces", False
-    return "", True
-
-
-def encrypt_password(password):
-    """Encrypt password with bcrypt"""
-    return bcrypt.hashpw(bytes(password+PEPPER, "utf-8"), bcrypt.gensalt())
-
-
-def generate_state(length=30):
-    """Generate random state"""
-    return "".join(secrets.choice(string.ascii_letters+string.digits) for _ in range(length))
+@app.route("/user/upload", methods=["POST"])
+def upload_passwords():
+    print("DUPA")
+    jwt = request.cookies.get("jwt")
+    jwt_data = validate_token(jwt)
+    if jwt_data:
+        print(request.files.keys())
+        if 'name' not in request.files:
+            flash('Pusty plik')
+            return redirect(request.url)
+        file = request.files['name']
+        if file.filename == '':
+            flash('Plik bez nazwy')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            content = file.stream.read()
+            update_passwords(content, jwt_data["username"])
+            return ('', 204)
+        return ('', 204)
+    return "Unauthorized", 401

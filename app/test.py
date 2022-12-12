@@ -1,26 +1,5 @@
-from email.message import EmailMessage
-from dotenv import load_dotenv
+import redis
 
-from os import getenv
-import smtplib
-import ssl
-load_dotenv(verbose=True)
-
-sender = getenv("GMAIL_USER")
-password = getenv("GMAIL_PASS")
-receiver = ['m.bilinskimichal@gmail.com']
-
-subject="AGRAFKA"
-message = """DONNA MAMA ES HUJOCZITA"""
-
-em = EmailMessage()
-em["From"] = sender
-em["To"] = receiver
-em["Subject"] = subject
-em.set_content(message)
-
-context = ssl.create_default_context()
-
-with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-    server.login(sender, password)
-    server.send_message(em)
+db = redis.StrictRedis.from_url("redis://127.0.0.1")
+db.delete("dane:hasla:PW-Michal-Bilinski")
+print(db.sadd("dane:hasla:PW-Michal-Bilinski" ,""))
