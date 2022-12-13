@@ -1,39 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Restore Form</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Rubik:400,700"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/login.css') }}"
+      }}
+    />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>Restore Form</title>
-  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Rubik:400,700'>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" }}>
-</head>
-
-<body>
-  <div class="login-form">
-    <div class="container">
-      {% with messages = get_flashed_messages() %}
-      {% if messages %}
-      {% for message in messages %}
-      <div class="success-msg">
-        <i class="fa fa-check"></i>
-        {{ message }}
-      </div>
-      {% endfor %}
-      {% endif %}
-      {% endwith %}
-    </div>
-    <form action="/restore_acces" method="post">
-      <h1>Link z tokenem do zmiany hasła zostanie wysłany na twój adres e-mail</h1>
-      <div class="content">
-        <div class="input-field">
-          <input name="username" type="username" placeholder="Username" autocomplete="yes">
+  <body>
+    <div class="login-form">
+      <div class="container">
+        {% with messages = get_flashed_messages() %} {% if messages %} {% for
+        message in messages %}
+        <div class="success-msg">
+          <i class="fa fa-check"></i>
+          {{ message }}
         </div>
+        {% endfor %} {% endif %} {% endwith %}
       </div>
-      <div class="action">
-        <button type="submit">Wyślij</button>
-      </div>
-    </form>
-  </div>
-</body>
-
+      <form action="/restore_acces" method="post">
+        <h1>
+          Link z tokenem do zmiany hasła zostanie wysłany na twój adres e-mail
+        </h1>
+        <div class="content">
+          <div class="input-field">
+            <input
+              name="username"
+              type="username"
+              placeholder="Username"
+              autocomplete="yes"
+            />
+          </div>
+        </div>
+        <div class="action">
+          <button type="submit">Wyślij</button>
+        </div>
+      </form>
+    </div>
+  </body>
 </html>

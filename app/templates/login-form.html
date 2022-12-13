@@ -1,48 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login Form</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Rubik:400,700"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/login.css') }}"
+      }}
+    />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>Login Form</title>
-  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Rubik:400,700'>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" }}>
-
-
-</head>
-
-<body>
-  <!-- partial:index.partial.html -->
-  <div class="login-form">
-    <form action="/authenticate" method="post">
-      <div class="container">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        {% for message in messages %}
-        <div class="success-msg">
-          <i class="fa fa-check"></i>
-          {{ message }}
+  <body>
+    <!-- partial:index.partial.html -->
+    <div class="login-form">
+      <form action="/authenticate" method="post">
+        <div class="container">
+          {% with messages = get_flashed_messages() %} {% if messages %} {% for
+          message in messages %}
+          <div class="success-msg">
+            <i class="fa fa-check"></i>
+            {{ message }}
+          </div>
+          {% endfor %} {% endif %} {% endwith %}
         </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
-      </div>
-      <h1>Login</h1>
-      <div class="content">
-        <div class="input-field">
-          <input name="username" type="username" placeholder="username" autocomplete="nope">
+        <h1>Login</h1>
+        <div class="content">
+          <div class="input-field">
+            <input
+              name="username"
+              type="username"
+              placeholder="username"
+              autocomplete="nope"
+            />
+          </div>
+          <div class="input-field">
+            <input
+              name="password"
+              type="password"
+              placeholder="Password"
+              autocomplete="new-password"
+            />
+          </div>
+          <a href="/restore_acces" class="link">Forgot Your Password?</a>
         </div>
-        <div class="input-field">
-          <input name="password" type="password" placeholder="Password" autocomplete="new-password">
+        <div class="action">
+          <button type="submit" name="register">Register</button>
+          <button type="submit" name="auth">zaloguj</button>
+          <button type="submit" name="oauth">Zaloguj z GitHub</button>
         </div>
-        <a href="/restore_acces" class="link">Forgot Your Password?</a>
-      </div>
-      <div class="action">
-        <button type="submit" name='register'>Register</button>
-        <button type="submit" name='auth'>zaloguj</button>
-        <button type="submit" name="oauth">Zaloguj z GitHub</button>
-      </div>
-    </form>
-  </div>
-</body>
-
+      </form>
+    </div>
+  </body>
 </html>
