@@ -1,45 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Zresetuj haslo Form</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Rubik:400,700"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/login.css') }}"
+      }}
+    />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>Zresetuj haslo Form</title>
-  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Rubik:400,700'>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" }}>
-</head>
-
-<body>
-  <div class="login-form">
-    <div class="container">
-      {% with messages = get_flashed_messages() %}
-      {% if messages %}
-      {% for message in messages %}
-      <div class="success-msg">
-        <i class="fa fa-check"></i>
-        {{ message }}
+  <body>
+    <div class="login-form">
+      <div class="container">
+        {% with messages = get_flashed_messages() %} {% if messages %} {% for
+        message in messages %}
+        <div class="success-msg">
+          <i class="fa fa-check"></i>
+          {{ message }}
+        </div>
+        {% endfor %} {% endif %} {% endwith %}
       </div>
-      {% endfor %}
-      {% endif %}
-      {% endwith %}
+      <form action="/restore_acces/verify" method="post">
+        <h1>Zresetuj hasło</h1>
+        <div class="content">
+          <div class="input-field">
+            <input name="token" placeholder="Token" autocomplete="no" />
+          </div>
+          <div class="input-field">
+            <input
+              name="new_password"
+              type="password"
+              placeholder="password"
+              autocomplete="no"
+            />
+          </div>
+          <div class="input-field">
+            <input
+              name="new_password_conf"
+              type="password"
+              placeholder="Confirm passowrd"
+              autocomplete="no"
+            />
+          </div>
+        </div>
+        <div class="action">
+          <button type="submit">Wyślij</button>
+        </div>
+      </form>
     </div>
-    <form action="/restore_acces/verify" method="post">
-      <h1>Zresetuj hasło</h1>
-      <div class="content">
-        <div class="input-field">
-          <input name="token" placeholder="Token" autocomplete="no">
-        </div>
-        <div class="input-field">
-          <input name="new_password" type="password" placeholder="password" autocomplete="no">
-        </div>
-        <div class="input-field">
-          <input name="new_password_conf" type="password" placeholder="Confirm passowrd" autocomplete="no">
-        </div>
-      </div>
-      <div class="action">
-        <button type="submit">Wyślij</button>
-      </div>
-    </form>
-  </div>
-</body>
-
+  </body>
 </html>
